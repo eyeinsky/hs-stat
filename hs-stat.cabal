@@ -1,0 +1,18 @@
+name:                hs-stat
+version:             0.1.0.0
+license:             BSD3
+license-file:        LICENSE
+maintainer:          eyeinsky9@gmail.com
+category:            Math
+build-type:          Simple
+extra-source-files:  ChangeLog.md
+cabal-version:       >=1.10
+
+library
+  exposed-modules:
+      Stat
+  -- other-modules:
+  -- other-extensions:
+  build-depends:       base >=4.9 && <4.10
+  -- hs-source-dirs:
+  default-language:    Haskell2010
