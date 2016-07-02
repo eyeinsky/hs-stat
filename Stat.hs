@@ -1,6 +1,7 @@
 module Stat where
 
 import Prelude
+import Lib
 
 type Row = (Double, Double)
 type Data = [Row]
@@ -36,7 +37,7 @@ pointCost mf (x, y) = diff^2
 
 {- | Calculate cost of some model over some data. -}
 cost :: Model -> Data -> Double
-cost m d = sum (map pointCost' d) / (2 * fromIntegral (length d))
+cost m d = sum (map pointCost' d) / (2 * length' d)
   where
     mf = toModelF m
     pointCost' = pointCost mf
