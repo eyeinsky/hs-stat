@@ -1,6 +1,8 @@
 module Stat where
 
 import Prelude
+import Data.Maybe (fromJust)
+import Data.List (find)
 import Lib
 
 type Row = (Double, Double)
@@ -43,7 +45,38 @@ cost m d = sum (map pointCost' d) / (2 * length' d)
     pointCost' = pointCost mf
 
 {- | Try to find a model with minimal cost over the data. It's implicit that we
-     only look within linear equations. The probable first algorithm will be the
-     gradient descent. -}
+     only look within linear equations. -}
 minimize :: Data -> Model
-minimize d = undefined
+minimize data_ = snd $ fromJust $ getConverged $ gradientDescent data_ alpha start
+  where
+    alpha = 0.001   -- what's a good alpha?
+    start = (1, 1)  -- what's a good starting point?
+    isConverged = (< 0.0001) -- what's a good distance to stop?
+    getConverged :: [Model] -> Maybe (Double, Model)
+    getConverged models = let
+        distModel :: Model -> Model -> (Double, Model)
+        distModel m1 m2 = (dist m1 m2, m2)
+        dists :: [(Double, Model)]
+        dists = zipWith distModel models (tail models)
+      in find (isConverged . fst) dists
+    dist :: Model -> Model -> Double
+    dist (t0, t1) (t0', t1') = sqrt $ (t0 - t0')^2 + (t1 - t1')^2
+
+{- | Gradient descent for linear equation. -}
+gradientDescent
+  :: Data     -- ^ Data to calculate cost from
+  -> Double   -- ^ Learning rate
+  -> Model    -- ^ Initial model/coordinates
+  -> [Model]  -- ^ Infinite list iteration steps
+gradientDescent data_ alpha model = gradientDescent' model
+  where
+    gradientDescent' :: Model -> [Model]
+    gradientDescent' m@ (theta0, theta1) = let
+        mf = toModelF m
+        theta0' = theta0 - alpha * sum' (linearCost mf)
+        theta1' = theta1 - alpha * sum' (\t@ (x0, x1) -> x1 * linearCost mf t)
+      in m : gradientDescent' (theta0', theta1')
+    sum' :: (Row -> Double) -> Double
+    sum' f = sum (map f data_) / length' data_
+    linearCost :: ModelF -> Row -> Double
+    linearCost mf (x, y) = mf x - y
